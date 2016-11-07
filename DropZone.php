@@ -2,9 +2,11 @@
 
 namespace kato;
 
+use Yii;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use kato\assets\DropZoneAsset;
+use yii\helpers\Url;
 
 /**
  * Usage: \kato\dropzonejs\DropZone::widget();
@@ -17,6 +19,7 @@ class DropZone extends \yii\base\Widget
      * @var array An array of options that are supported by Dropzone
      */
     public $options = [];
+    public $files = null;
 
     /**
      * @var array An array of client events that are supported by Dropzone
@@ -42,9 +45,9 @@ class DropZone extends \yii\base\Widget
         if (!isset($this->options['url'])) $this->options['url'] = $this->uploadUrl; // Set the url
         if (!isset($this->options['previewsContainer'])) $this->options['previewsContainer'] = '#' . $this->previewsContainer; // Define the element that should be used as click trigger to select files.
         if (!isset($this->options['clickable'])) $this->options['clickable'] = true; // Define the element that should be used as click trigger to select files.
-        $this->autoDiscover = $this->autoDiscover===false?'false':'true';
-        
-        if(\Yii::$app->getRequest()->enableCsrfValidation){
+        $this->autoDiscover = $this->autoDiscover === false ? 'false' : 'true';
+
+        if (\Yii::$app->getRequest()->enableCsrfValidation) {
             $this->options['headers'][\yii\web\Request::CSRF_HEADER] = \Yii::$app->getRequest()->getCsrfToken();
             $this->options['params'][\Yii::$app->getRequest()->csrfParam] = \Yii::$app->getRequest()->getCsrfToken();
         }
@@ -60,10 +63,11 @@ class DropZone extends \yii\base\Widget
 
     private function renderDropzone()
     {
-        $data = Html::tag('div', '', ['id' => $this->previewsContainer,'class' => 'dropzone-previews']);
+        $data = Html::tag('div', '', ['id' => $this->previewsContainer, 'class' => 'dropzone-previews']);
 
         return $data;
     }
+
 
     /**
      * Registers the needed assets
@@ -72,13 +76,22 @@ class DropZone extends \yii\base\Widget
     {
         $view = $this->getView();
 
-        $js = 'Dropzone.autoDiscover = ' . $this->autoDiscover . '; var ' . $this->id . ' = new Dropzone("div#' . $this->dropzoneContainer . '", ' . Json::encode($this->options) . ');';
+        $js = '';
+        if (!empty($this->files)) {
+            $js = 'Dropzone.options.myDropzone = {
+                     init: function() {
+                        ' . $this->files . '
+                     }
+                };';
+        }
+        $js .= 'Dropzone.autoDiscover = ' . $this->autoDiscover . '; var ' . $this->id . ' = new Dropzone("div#' . $this->dropzoneContainer . '", ' . Json::encode($this->options) . ');';
 
         if (!empty($this->clientEvents)) {
             foreach ($this->clientEvents as $event => $handler) {
                 $js .= "$this->id.on('$event', $handler);";
             }
         }
+
 
         $view->registerJs($js);
         DropZoneAsset::register($view);
