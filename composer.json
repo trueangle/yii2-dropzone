@@ -1,6 +1,6 @@
 {
-    "name": "perminder-klair/yii2-dropzone",
-    "description": "DropzoneJs Extention for Yii2",
+    "name": "trueangle/yii2-mydropzone",
+    "description": "Fork of DropzoneJs Extention for Yii2",
     "type": "yii2-extension",
     "keywords": ["yii2","extension","dropzone","upload"],
     "license": "MIT",
@@ -9,6 +9,7 @@
             "name": "Parminder Klair",
             "email": "perminder.klair@gmail.com"
         }
+        
     ],
     "minimum-stability": "dev",
     "require": {
