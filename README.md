@@ -72,3 +72,63 @@ public function actionUpload()
     return false;
 }
 ```
+An example of an AJAX request to get a list of the downloaded files with the ability to remove them
+```javascript
+   function deleteFile(file) {
+            var name;
+            if (file.id) {
+                name = file.id;
+            } else {
+                var response = JSON.parse(file.xhr.response);
+                name = response.name;
+            }
+            $.ajax({
+                type: 'POST',
+                url: 'URL_DELETE_ACTION',
+                data: {name: name},
+                dataType: 'html',
+                success: function (response) {
+                    if (!response) {
+                        console.log("Deleting error");
+                    }
+                }
+            });
+
+   }
+
+  function getFiles(dropzone) {
+            $.ajax({
+                type: 'POST',
+                url: 'URL_GET_FILES_ACTION',
+                dataType: 'json',
+                success: function (response) {
+                    if (response) {
+                        for (var i in response) {
+                            dropzone.emit('addedfile', response[i]);
+                            dropzone.emit('thumbnail', response[i], response[i].url);
+                            dropzone.files.push(response[i]);
+                        }
+                    }
+                }
+            });
+        }
+```
+```php
+    echo \kato\DropZone::widget([
+        'options' => [
+            'url' => \Yii::$app->getUrlManager()->createUrl(['doctor/upload', 'id' => $model->id]),
+            'addRemoveLinks' => true,
+
+        ],
+        'clientEvents' => [
+            'sending' => "function(file, xhr, formData) {
+                console.log(file);
+                }",
+
+            'removedfile' => "function(file) {deleteFile(file);}",//deleteFile func call
+
+
+        ], 'files' => 'getFiles(this)',//getFiles func call
+
+    ]);
+```
